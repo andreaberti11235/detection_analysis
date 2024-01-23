@@ -1,6 +1,7 @@
 import os
 import argparse
 import numpy as np
+from numpy import linalg
 from matplotlib import pyplot as plt
 import pandas as pd
 
@@ -17,13 +18,46 @@ def main():
     gt_df = pd.read_csv(gt_txt, sep=' ', header=None)
     pred_df = pd.read_csv(pred_txt, sep=' ', header=None)
 
+    gt_list = []
+    pred_list = []
+
     for idx in gt_df.index:
         x_center = gt_df.iloc[idx][1]
         y_center = gt_df.iloc[idx][2]
         width = gt_df.iloc[idx][3]
         height = gt_df.iloc[idx][4]
 
+        gt_element = [x_center, y_center, width, height]
+        gt_list.append(gt_element) # è una lista di liste, ciascuna delle quali contiene gli elementi di un bbox
+
+    for idx in pred_df.index:
+        x_center = pred_df.iloc[idx][1]
+        y_center = pred_df.iloc[idx][2]
+        width = pred_df.iloc[idx][3]
+        height = pred_df.iloc[idx][4]
+        confidence = gt_df.iloc[idx][5]
+
+        pred_element = [x_center, y_center, width, height, confidence]
+        pred_list.append(pred_element)
+
+    for detection in pred_list:
+        distances = []
+        # per ogni elemento trovato, inizializzo una lista, 
+        # poi guardo quanto dista da tutti i bbox della gt e appendo alla lista
+        for bbox in gt_list:
+            pred_xy = np.array(detection[0:2])
+            gt_xy = np.array(bbox[0:2])
+
+            distance = linalg.norm(pred_xy - gt_xy)
+            distances.append(distance)
         
+        closest_item = np.argmax(distances)
+        diagonal = np.hypot(gt_list[closest_item][2], gt_list[closest_item][3])
+
+        if distances[closest_item] <= (1.5*diagonal)/2:
+            print('è un vero positivo')
+
+
 
 
     # leggo tutti i GT e li metto in una lista,
