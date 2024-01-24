@@ -55,7 +55,7 @@ def main():
         diagonal = np.hypot(gt_list[closest_item][2], gt_list[closest_item][3])
 
         if distances[closest_item] <= (1.5*diagonal)/2:
-            print('è un vero Vero Positivo')
+            print(f'è un vero Vero Positivo, massa più vicina riga {closest_item}')
 
         else:
             print('è un Falso Positivo')
