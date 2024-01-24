@@ -35,7 +35,7 @@ def main():
         y_center = pred_df.iloc[idx][2]
         width = pred_df.iloc[idx][3]
         height = pred_df.iloc[idx][4]
-        confidence = gt_df.iloc[idx][5]
+        confidence = pred_df.iloc[idx][5]
 
         pred_element = [x_center, y_center, width, height, confidence]
         pred_list.append(pred_element)
