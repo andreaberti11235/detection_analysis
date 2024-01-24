@@ -51,7 +51,7 @@ def main():
             distance = linalg.norm(pred_xy - gt_xy)
             distances.append(distance)
         
-        closest_item = np.argmax(distances)
+        closest_item = np.argmin(distances)
         diagonal = np.hypot(gt_list[closest_item][2], gt_list[closest_item][3])
 
         if distances[closest_item] <= (1.5*diagonal)/2:
