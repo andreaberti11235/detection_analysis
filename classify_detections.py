@@ -71,9 +71,10 @@ def main():
             print('è un Falso Positivo')
             nr_FP +=1
 
-    nr_FN = np.sum(found_masses)
-    print(f'Total number of found masses TP={nr_TP}\n')
+    nr_FN = len(found_masses) - np.sum(found_masses)
+    print(f'Total number of found masses TP={nr_TP}')
     print(f'Total number of wrong detections found FP={nr_FP}')
+    print(found_masses)
     print(f'Number of masses not found FN={nr_FN}')
 
 
