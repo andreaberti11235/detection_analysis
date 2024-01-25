@@ -75,7 +75,7 @@ def main():
     print(f'Total number of found masses TP={nr_TP}')
     print(f'Total number of wrong detections found FP={nr_FP}')
     print(found_masses)
-    print(f'Number of masses not found FN={nr_FN}')
+    print(f'Number of non-detected masses FN={nr_FN}')
 
 
 
