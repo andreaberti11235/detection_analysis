@@ -45,10 +45,10 @@ def main():
 
         
         tot_n_masses += len(gt_list)
+        found_masses = np.zeros(shape=len(gt_list))
+
 
         if os.path.exists(pred_txt):
-            
-            found_masses = np.zeros(shape=len(gt_list))
             pred_df = pd.read_csv(pred_txt, sep=' ', header=None)
 
 
@@ -89,10 +89,8 @@ def main():
                     # print('è un Falso Positivo')
                     nr_FP +=1
 
-            nr_FN += len(found_masses) - np.sum(found_masses)
+        nr_FN += len(found_masses) - np.sum(found_masses)
 
-        else:
-            nr_FN += tot_n_masses
 
     now = datetime.now()
     dt_string = now.strftime("%d_%m_%Y__%H_%M")
@@ -105,6 +103,7 @@ def main():
         out_file.write(f'Total number of found masses TP={nr_TP}\n')
         out_file.write(f'Total number of wrong detections found FP={nr_FP}\n')
         out_file.write(f'Number of non-detected masses FN={nr_FN}\n')
+        out_file.write(f'Total number of masses Tot={tot_n_masses}')
 
         # leggo tutti i GT e li metto in una lista,
         # leggo tutte le predizioni e le metto in una lista
