@@ -21,6 +21,10 @@ def main():
     gt_list = []
     pred_list = []
 
+    nr_TP = 0
+    nr_FP = 0
+    nr_FN = 0
+
     for idx in gt_df.index:
         x_center = gt_df.iloc[idx][1]
         y_center = gt_df.iloc[idx][2]
@@ -29,6 +33,8 @@ def main():
 
         gt_element = [x_center, y_center, width, height]
         gt_list.append(gt_element) # è una lista di liste, ciascuna delle quali contiene gli elementi di un bbox
+
+    found_masses = np.zeros(shape=len(gt_list))
 
     for idx in pred_df.index:
         x_center = pred_df.iloc[idx][1]
@@ -56,9 +62,19 @@ def main():
 
         if distances[closest_item] <= (1.5*diagonal)/2:
             print(f'è un vero Vero Positivo, massa più vicina riga {closest_item}')
+            if found_masses[closest_item] == 1:
+                print(f'Errore: massa riga {closest_item} già trovata!')
+            found_masses[closest_item] = 1
+            nr_TP += 1
 
         else:
             print('è un Falso Positivo')
+            nr_FP +=1
+
+    nr_FN = np.sum(found_masses)
+    print(f'Total number of found masses TP={nr_TP}\n')
+    print(f'Total number of wrong detections found FP={nr_FP}')
+    print(f'Number of masses not found FN={nr_FN}')
 
 
 
