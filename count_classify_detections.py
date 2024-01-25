@@ -26,7 +26,7 @@ def main():
 
     for element in glob.glob(os.path.join(gt_dir, '*')):
         gt_txt = element
-        pred_txt = os.path.join(pred_dir, os.basename(element))
+        pred_txt = os.path.join(pred_dir, os.path.basename(element))
 
         gt_df = pd.read_csv(gt_txt, sep=' ', header=None)
         pred_df = pd.read_csv(pred_txt, sep=' ', header=None)
