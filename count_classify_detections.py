@@ -29,7 +29,6 @@ def main():
         pred_txt = os.path.join(pred_dir, os.path.basename(element))
 
         gt_df = pd.read_csv(gt_txt, sep=' ', header=None)
-        pred_df = pd.read_csv(pred_txt, sep=' ', header=None)
 
         gt_list = []
         pred_list = []
@@ -44,47 +43,56 @@ def main():
             gt_element = [x_center, y_center, width, height]
             gt_list.append(gt_element) # è una lista di liste, ciascuna delle quali contiene gli elementi di un bbox
 
-        found_masses = np.zeros(shape=len(gt_list))
+        
         tot_n_masses += len(gt_list)
 
-        for idx in pred_df.index:
-            x_center = pred_df.iloc[idx][1]
-            y_center = pred_df.iloc[idx][2]
-            width = pred_df.iloc[idx][3]
-            height = pred_df.iloc[idx][4]
-            confidence = pred_df.iloc[idx][5]
-
-            pred_element = [x_center, y_center, width, height, confidence]
-            pred_list.append(pred_element)
-
-        for detection in pred_list:
-            distances = []
-            # per ogni elemento trovato, inizializzo una lista, 
-            # poi guardo quanto dista da tutti i bbox della gt e appendo alla lista
-            for bbox in gt_list:
-                pred_xy = np.array(detection[0:2])
-                gt_xy = np.array(bbox[0:2])
-
-                distance = linalg.norm(pred_xy - gt_xy)
-                distances.append(distance)
+        if os.path.exists(pred_txt):
             
-            closest_item = np.argmin(distances)
-            diagonal = np.hypot(gt_list[closest_item][2], gt_list[closest_item][3])
+            found_masses = np.zeros(shape=len(gt_list))
+            pred_df = pd.read_csv(pred_txt, sep=' ', header=None)
 
-            if distances[closest_item] <= (1.5*diagonal)/2:
-                # print(f'è un vero Vero Positivo, massa più vicina riga {closest_item}')
-                if found_masses[closest_item] == 1:
-                    print(f'Errore: massa riga {closest_item} del paziente {os.path.basename(element)} già trovata!')
-                else:
-                    nr_TP += 1
-                found_masses[closest_item] = 1
+
+            for idx in pred_df.index:
+                x_center = pred_df.iloc[idx][1]
+                y_center = pred_df.iloc[idx][2]
+                width = pred_df.iloc[idx][3]
+                height = pred_df.iloc[idx][4]
+                confidence = pred_df.iloc[idx][5]
+
+                pred_element = [x_center, y_center, width, height, confidence]
+                pred_list.append(pred_element)
+
+            for detection in pred_list:
+                distances = []
+                # per ogni elemento trovato, inizializzo una lista, 
+                # poi guardo quanto dista da tutti i bbox della gt e appendo alla lista
+                for bbox in gt_list:
+                    pred_xy = np.array(detection[0:2])
+                    gt_xy = np.array(bbox[0:2])
+
+                    distance = linalg.norm(pred_xy - gt_xy)
+                    distances.append(distance)
                 
+                closest_item = np.argmin(distances)
+                diagonal = np.hypot(gt_list[closest_item][2], gt_list[closest_item][3])
 
-            else:
-                # print('è un Falso Positivo')
-                nr_FP +=1
+                if distances[closest_item] <= (1.5*diagonal)/2:
+                    # print(f'è un vero Vero Positivo, massa più vicina riga {closest_item}')
+                    if found_masses[closest_item] == 1:
+                        print(f'Errore: massa riga {closest_item} del paziente {os.path.basename(element)} già trovata!')
+                    else:
+                        nr_TP += 1
+                    found_masses[closest_item] = 1
+                    
 
-        nr_FN += len(found_masses) - np.sum(found_masses)
+                else:
+                    # print('è un Falso Positivo')
+                    nr_FP +=1
+
+            nr_FN += len(found_masses) - np.sum(found_masses)
+
+        else:
+            nr_FN += tot_n_masses
 
     now = datetime.now()
     dt_string = now.strftime("%d_%m_%Y__%H_%M")
