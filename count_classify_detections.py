@@ -74,7 +74,7 @@ def main():
             if distances[closest_item] <= (1.5*diagonal)/2:
                 # print(f'è un vero Vero Positivo, massa più vicina riga {closest_item}')
                 if found_masses[closest_item] == 1:
-                    print(f'Errore: massa riga {closest_item} del paziente {os.basename(element)} già trovata!')
+                    print(f'Errore: massa riga {closest_item} del paziente {os.path.basename(element)} già trovata!')
                 else:
                     nr_TP += 1
                 found_masses[closest_item] = 1
