@@ -105,11 +105,13 @@ def main():
                     distance = linalg.norm(pred_xy - gt_xy)
                     distances.append(distance)
                 
+                # trovo a quale massa GT sta più vicino e per quella calcolo la IOU
                 closest_item = np.argmin(distances)
                 gt_values = gt_list[closest_item]
                 iou_value = iou(x1=detection[0], y1=detection[1], w1=detection[2], h1=detection[3],
                                 x2=gt_values[0], y2=gt_values[1], w2=gt_values[2], h2=gt_values[3])
 
+                # se la IOU è minore di una certa soglia, le considero come coincidenti
                 if iou_value >= iou_threshold:
                     # print(f'è un vero Vero Positivo, massa più vicina riga {closest_item}')
                     found_masses[closest_item] = 1
