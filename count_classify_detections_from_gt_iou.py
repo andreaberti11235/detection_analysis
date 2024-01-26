@@ -135,7 +135,8 @@ def main():
         out_file.write(f'Total number of found masses TP={nr_TP}\n')
         out_file.write(f'Total number of wrong detections found FP={nr_FP}\n')
         out_file.write(f'Number of non-detected masses FN={nr_FN}\n')
-        out_file.write(f'Total number of masses Tot={tot_n_masses}\n')
+        out_file.write(f'Total number of masses Tot={tot_n_masses}\n\n')
+        out_file.write(f'IOU threshold value = {iou_threshold}')
 
         # leggo tutti i GT e li metto in una lista,
         # leggo tutte le predizioni e le metto in una lista
