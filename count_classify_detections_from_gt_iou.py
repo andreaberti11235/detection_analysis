@@ -110,7 +110,7 @@ def main():
                 iou_value = iou(x1=detection[0], y1=detection[1], w1=detection[2], h1=detection[3],
                                 x2=gt_values[0], y2=gt_values[1], w2=gt_values[2], h2=gt_values[3])
 
-                if iou_value <= iou_threshold:
+                if iou_value >= iou_threshold:
                     # print(f'è un vero Vero Positivo, massa più vicina riga {closest_item}')
                     found_masses[closest_item] = 1
                     
