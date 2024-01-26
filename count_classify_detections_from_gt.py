@@ -13,11 +13,13 @@ def main():
     parser.add_argument('gt_dir', help='Absolute path of the folder containing the ground-truth txt files')
     parser.add_argument('pred_dir', help='Absolute path of the folder containing the prediction txt files')
     parser.add_argument('out_dir', help='Absolute path of the folder where the output file, with the resulting numbers, will be saved')
+    parser.add_argument('-r', '--radius_fraction', type=float, default=1.5, help='Fraction of the radius to determine if a detection is close enough to the gt mass (default = 1.5)')
     args = parser.parse_args()
 
     gt_dir = args.gt_dir
     pred_dir = args.pred_dir
     out_dir = args.out_dir
+    radius_fraction = args.radius_fraction
 
     tot_n_masses = 0
     nr_TP = 0
@@ -76,7 +78,7 @@ def main():
                 closest_item = np.argmin(distances)
                 diagonal = np.hypot(gt_list[closest_item][2], gt_list[closest_item][3])
 
-                if distances[closest_item] <= (1.5*diagonal)/2:
+                if distances[closest_item] <= (radius_fraction*diagonal)/2:
                     # print(f'è un vero Vero Positivo, massa più vicina riga {closest_item}')
                     found_masses[closest_item] = 1
                     
