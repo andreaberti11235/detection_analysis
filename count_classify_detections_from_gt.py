@@ -85,8 +85,8 @@ def main():
                 #     # print('è un Falso Positivo')
                 #     nr_FP +=1
 
-        nr_TP = np.sum(found_masses)
-        nr_FP = len(pred_list) - nr_TP
+        nr_TP += np.sum(found_masses)
+        nr_FP += len(pred_list) - nr_TP
         nr_FN += len(found_masses) - np.sum(found_masses)
 
 
