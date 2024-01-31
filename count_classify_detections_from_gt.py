@@ -26,6 +26,9 @@ def main():
     nr_FP = 0
     nr_FN = 0
 
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
+
     for element in glob.glob(os.path.join(gt_dir, '*')):
         gt_txt = element
         pred_txt = os.path.join(pred_dir, os.path.basename(element))
