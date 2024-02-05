@@ -110,7 +110,51 @@ def fill_in_pred_list(pred_list, pred_txt):
     # Return the pred_list
     return pred_list
 
+def get_minimal_bounding_box(x1, y1, w1, h1, x2, y2, w2, h2):
+    """
+    Returns the minimal bounding box containing two bounding boxes.
 
+    Args:
+    x1 (float): The x coordinate of the center of the first bounding box.
+    y1 (float): The y coordinate of the center of the first bounding box.
+    w1 (float): The width of the first bounding box.
+    h1 (float): The height of the first bounding box.
+    x2 (float): The x coordinate of the center of the second bounding box.
+    y2 (float): The y coordinate of the center of the second bounding box.
+    w2 (float): The width of the second bounding box.
+    h2 (float): The height of the second bounding box.
+
+    Returns:
+    tuple: A tuple of four floats representing the x coordinate, y coordinate, width, and height of the minimal bounding box.
+    """
+    # Get the corners of the first bounding box
+    x1_min = x1 - w1 / 2
+    x1_max = x1 + w1 / 2
+    y1_min = y1 - h1 / 2
+    y1_max = y1 + h1 / 2
+
+    # Get the corners of the second bounding box
+    x2_min = x2 - w2 / 2
+    x2_max = x2 + w2 / 2
+    y2_min = y2 - h2 / 2
+    y2_max = y2 + h2 / 2
+
+    # Find the minimum and maximum values of x and y coordinates
+    x_min = min(x1_min, x2_min)
+    x_max = max(x1_max, x2_max)
+    y_min = min(y1_min, y2_min)
+    y_max = max(y1_max, y2_max)
+
+    # Calculate the width and height of the minimal bounding box
+    w = x_max - x_min
+    h = y_max - y_min
+
+    # Calculate the x_center and y_center of the minimal bounding box
+    x = x_min + w / 2
+    y = y_min + h / 2
+
+    # Return the x_center, y_center, width, and height of the minimal bounding box
+    return (x, y, w, h)
 
 def main():
     parser = argparse.ArgumentParser(description='Analyse the prediction outputs to find TP and FP.')
@@ -119,7 +163,7 @@ def main():
     parser.add_argument('pred_v8_dir', help='Absolute path of the folder containing the prediction txt files from YOLO v8')
     parser.add_argument('out_dir', help='Absolute path of the folder where the output file, with the resulting numbers, will be saved')
     parser.add_argument('-iou_th_gt', '--iou_threshold_gt', type=float, default=0.1, help='Threshold for IOU (default = 0.1)when comparing predictions to GT')
-    parser.add_argument('-iou_th_p', '--iou_threshold_prediction', type=float, default=0.1, help='Threshold for IOU (default = 0.1), when comparing predictions from V5 to those from v8')
+    parser.add_argument('-iou_th_p', '--iou_threshold_prediction', type=float, default=0.3, help='Threshold for IOU (default = 0.3), when comparing predictions from V5 to those from v8')
     parser.add_argument('-conf_th', '--conf_threshold', type=float, default=0.1, help='Threshold for confidence value (default = 0.1)')
     args = parser.parse_args()
 
@@ -173,10 +217,14 @@ def main():
         pred_v5_list = fill_in_pred_list(pred_v5_list, pred_v5_txt)
         pred_v8_list = fill_in_pred_list(pred_v8_list, pred_v8_txt)
 
+        pred_fusion = pred_v5_list[:]
+        # parto inizializzando pred_fusion a v5, poi scorro v8, se la predizione coincide con una di quelle di v5
+        # levo da v5 e la sostituisco con la fusione, altrimenti appendo alla lista
+
 
         
         for detection in pred_v8_list:
-            n_trovati = 0
+            # n_trovati = 0
             distances = []
             # per ogni elemento trovato, inizializzo una lista, 
             # poi guardo quanto dista da tutti i bbox della v5 e appendo alla lista
@@ -187,26 +235,40 @@ def main():
                 distance = linalg.norm(pred_v8_xy - pred_v5_xy)
                 distances.append(distance)
             
-            # trovo a quale massa GT sta più vicino e per quella calcolo la IOU
+            # trovo a quale v5 sta più vicina a quella v8 che sto considerando e per quella calcolo la IOU
             closest_item = np.argmin(distances)
             pred_v5_values = pred_v5_list[closest_item]
             iou_value = iou(x1=detection[0], y1=detection[1], w1=detection[2], h1=detection[3],
                             x2=pred_v5_values[0], y2=pred_v5_values[1], w2=pred_v5_values[2], h2=pred_v5_values[3])
 
-            # se la IOU è minore di una certa soglia, le considero come coincidenti
+            # se la IOU è maggiore di una certa soglia, le considero come coincidenti
             if iou_value >= iou_threshold_pred:
                 # print(f'è un vero Vero Positivo, massa più vicina riga {closest_item}')
-                n_trovati += 1
-            if n_trovati >= 2:
-                print(f'Paziente {element} troppi finding coincidono, n_trovati={n_trovati}')
+            #     n_trovati += 1
+            # if n_trovati >= 2:
+            #     print(f'Paziente {element} troppi finding coincidono, n_trovati={n_trovati}')
+                x, y, w, h = get_minimal_bounding_box(x1=detection[0], y1=detection[1], w1=detection[2], h1=detection[3],
+                            x2=pred_v5_values[0], y2=pred_v5_values[1], w2=pred_v5_values[2], h2=pred_v5_values[3])
+
+                conf = detection[4] + pred_v5_values[4]
+                # per il momento faccio banalmente una somma, da raffinare
+
+                # se coincide con una massa di v5, la levo dalla lista (sia di v5 che della fusione). Nella lista
+                # delle fusioni la sostituisco con quella nuova
+                pred_fusion.remove(pred_v5_values)
+                pred_v5_list.remove(pred_v5_values)
+                pred_fusion.append([x, y, w, h, conf])
+
+            else:
+                # se le due detection non coincidono, allora la detection di v8 è una detection nuova e la aggiungo
+                pred_fusion.append(detection)
+
+        # finito il ciclo sulle masse di v8, devo scrivere il relativo txt
+        out_file_path = os.path.join(out_dir, os.path.basename(element))
+        with open(out_file_path, 'w') as out_file:
+            for prediction in pred_fusion:
+                out_file.write(f'{prediction[0]}, {prediction[1]}, {prediction[2]}, {prediction[3]}, {prediction[4]}\n')
                 
-
-
-
-
-
-
-
 
 
     #     for detection in pred_list:
