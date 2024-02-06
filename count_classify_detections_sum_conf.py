@@ -224,6 +224,9 @@ def main():
 
         
         for detection in pred_v8_list:
+          if len(pred_v5_list) == 0:
+              pred_fusion = pred_v8_list[:]
+          else:
             # n_trovati = 0
             distances = []
             # per ogni elemento trovato, inizializzo una lista, 
