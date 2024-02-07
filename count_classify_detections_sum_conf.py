@@ -270,7 +270,7 @@ def main():
         out_file_path = os.path.join(out_dir, os.path.basename(element))
         with open(out_file_path, 'w') as out_file:
             for prediction in pred_fusion:
-                out_file.write(f'{prediction[0]} {prediction[1]} {prediction[2]} {prediction[3]} {prediction[4]}\n')
+                out_file.write(f'0 {prediction[0]} {prediction[1]} {prediction[2]} {prediction[3]} {prediction[4]}\n')
                 
 
 
