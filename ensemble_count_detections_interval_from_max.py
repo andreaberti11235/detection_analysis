@@ -318,7 +318,7 @@ def main():
         out_file.write(f'Number of non-detected masses FN={nr_FN}\n')
         out_file.write(f'Total number of masses Tot={tot_n_masses}\n\n')
         out_file.write(f'IOU threshold value = {iou_threshold_gt}\n')
-        out_file.write(f'First n = {first_n}\n')
+        out_file.write(f'Percentage threshold = {interval_percentage}\n')
 
     if len(append_to_file) > 0:
         if not os.path.exists:
