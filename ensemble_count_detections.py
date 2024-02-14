@@ -266,7 +266,10 @@ def main():
                 else:
                     # se le due detection non coincidono, allora la detection di v8 è una detection nuova e la aggiungo
                     pred_fusion.append(detection)
-
+        
+        # a questo punto ho completato la lista delle predizioni dell'ensemble, combinando le detection di v5 e di v8
+        # ora applico la soglia su conf:
+        pred_fusion = [sublist for sublist in pred_fusion if sublist[4] >= conf_threshold]
 
         for detection in pred_fusion:
             # ora confronto la GT con le detection fuse con l'ensemble
@@ -286,10 +289,8 @@ def main():
             iou_value = iou(x1=detection[0], y1=detection[1], w1=detection[2], h1=detection[3],
                             x2=gt_values[0], y2=gt_values[1], w2=gt_values[2], h2=gt_values[3])
             
-            conf_detection = detection[4]
-
             # se la IOU è minore di una certa soglia, le considero come coincidenti
-            if iou_value >= iou_threshold_gt and conf_detection >= conf_threshold:
+            if iou_value >= iou_threshold_gt:
                 found_masses[closest_item] = 1
 
         nr_TP += np.sum(found_masses)
