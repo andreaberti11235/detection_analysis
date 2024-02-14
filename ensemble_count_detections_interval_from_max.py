@@ -273,7 +273,10 @@ def main():
         sorted_list = sorted(pred_fusion, key=lambda x: x[4], reverse=True)
 
         # get the threshold confidence
-        conf_th = 1 - (interval_percentage * sorted_list[0][4])
+        if len(sorted_list) > 0:
+            conf_th = 1 - (interval_percentage * sorted_list[0][4])
+        else:
+            conf_th = 1.0
 
         # take only the elements above threshold
         pred_fusion = [sublist for sublist in sorted_list if sublist[4] >= conf_th]
