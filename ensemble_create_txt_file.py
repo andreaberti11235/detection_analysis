@@ -162,23 +162,17 @@ def main():
     parser.add_argument('pred_v5_dir', help='Absolute path of the folder containing the prediction txt files from YOLO v5')
     parser.add_argument('pred_v8_dir', help='Absolute path of the folder containing the prediction txt files from YOLO v8')
     parser.add_argument('out_dir', help='Absolute path of the folder where the output file, with the resulting numbers, will be saved')
-    parser.add_argument('-iou_th_gt', '--iou_threshold_gt', type=float, default=0.1, help='Threshold for IOU (default = 0.1)when comparing predictions to GT')
     parser.add_argument('-iou_th_p', '--iou_threshold_prediction', type=float, default=0.3, help='Threshold for IOU (default = 0.3), when comparing predictions from V5 to those from v8')
-    parser.add_argument('-conf_th', '--conf_threshold', type=float, default=0.1, help='Threshold for confidence value (default = 0.1)')
     args = parser.parse_args()
 
     gt_dir = args.gt_dir
     pred_v5_dir = args.pred_v5_dir
     pred_v8_dir = args.pred_v8_dir
     out_dir = args.out_dir
-    iou_threshold_gt = args.iou_threshold_gt
     iou_threshold_pred = args.iou_threshold_prediction
-    conf_threshold = args.conf_threshold
 
     tot_n_masses = 0
-    nr_TP = 0
-    nr_FP = 0
-    nr_FN = 0
+
 
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
@@ -206,7 +200,6 @@ def main():
 
         
         tot_n_masses += len(gt_list)
-        found_masses = np.zeros(shape=len(gt_list))
 
         # devo spezzarli: prima guardo se esiste il txt di v5, in caso sompilo la lista delle predizioni; poi altro if
         # allo stesso livello e guardo se esiste il txt di v8, nel caso compilo la lista per v8;
@@ -221,8 +214,6 @@ def main():
         # parto inizializzando pred_fusion a v5, poi scorro v8, se la predizione coincide con una di quelle di v5
         # levo da v5 e la sostituisco con la fusione, altrimenti appendo alla lista
 
-
-        
         for detection in pred_v8_list:
           if len(pred_v5_list) == 0:
               pred_fusion = pred_v8_list[:]
@@ -273,57 +264,6 @@ def main():
                 out_file.write(f'0 {prediction[0]} {prediction[1]} {prediction[2]} {prediction[3]} {prediction[4]}\n')
                 
 
-
-    #     for detection in pred_list:
-    #         distances = []
-    #         # per ogni elemento trovato, inizializzo una lista, 
-    #         # poi guardo quanto dista da tutti i bbox della gt e appendo alla lista
-    #         for bbox in gt_list:
-    #             pred_xy = np.array(detection[0:2])
-    #             gt_xy = np.array(bbox[0:2])
-
-    #             distance = linalg.norm(pred_xy - gt_xy)
-    #             distances.append(distance)
-            
-    #         # trovo a quale massa GT sta più vicino e per quella calcolo la IOU
-    #         closest_item = np.argmin(distances)
-    #         gt_values = gt_list[closest_item]
-    #         iou_value = iou(x1=detection[0], y1=detection[1], w1=detection[2], h1=detection[3],
-    #                         x2=gt_values[0], y2=gt_values[1], w2=gt_values[2], h2=gt_values[3])
-
-    #         # se la IOU è minore di una certa soglia, le considero come coincidenti
-    #         if iou_value >= iou_threshold_gt:
-    #             # print(f'è un vero Vero Positivo, massa più vicina riga {closest_item}')
-    #             found_masses[closest_item] = 1
-                
-
-    #         # else:
-    #         #     # print('è un Falso Positivo')
-    #         #     nr_FP +=1
-
-    #     nr_TP += np.sum(found_masses)
-    #     nr_FP += len(pred_list) - np.sum(found_masses)
-    #     nr_FN += len(found_masses) - np.sum(found_masses)
-
-
-    # now = datetime.now()
-    # dt_string = now.strftime("%d_%m_%Y__%H_%M")
-    # filename = f'count_{dt_string}.txt'
-   
-    # while os.path.exists(os.path.join(out_dir, filename)):
-    #     filename = f'{filename[:-4]}_new.txt'
-    
-    # with open(os.path.join(out_dir, filename), 'w') as out_file:
-    #     out_file.write(f'Total number of found masses TP={nr_TP}\n')
-    #     out_file.write(f'Total number of wrong detections found FP={nr_FP}\n')
-    #     out_file.write(f'Number of non-detected masses FN={nr_FN}\n')
-    #     out_file.write(f'Total number of masses Tot={tot_n_masses}\n\n')
-    #     out_file.write(f'IOU threshold value = {iou_threshold}\n')
-    #     out_file.write(f'Confidence threshold value = {conf_threshold}\n')
-
-    #     # leggo tutti i GT e li metto in una lista,
-    #     # leggo tutte le predizioni e le metto in una lista
-    #     # per ogni predizione dovrei calcolare le distanze da ogni GT
 
 
 if __name__ == "__main__":
