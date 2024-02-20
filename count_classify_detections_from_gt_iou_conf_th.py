@@ -45,6 +45,7 @@ def main():
     parser.add_argument('out_dir', help='Absolute path of the folder where the output file, with the resulting numbers, will be saved')
     parser.add_argument('-iou_th', '--iou_threshold', type=float, default=0.1, help='Threshold for IOU (default = 0.1)')
     parser.add_argument('-conf_th', '--conf_threshold', type=float, default=0.1, help='Threshold for confidence value (default = 0.1)')
+    parser.add_argument('-file', '--append_to_file', type=str, help='Path to the txt file, where the resulting metrics will be appended (for comparison analysis). If not given, only the file in the out_dir will be produced. The file MUST EXIST and have the following columns nr_TP nr_FP nr_FN (separated by a space)')
     args = parser.parse_args()
 
     gt_dir = args.gt_dir
@@ -52,6 +53,8 @@ def main():
     out_dir = args.out_dir
     iou_threshold = args.iou_threshold
     conf_threshold = args.conf_threshold
+    append_to_file = args.append_to_file
+
 
     tot_n_masses = 0
     nr_TP = 0
@@ -150,6 +153,13 @@ def main():
         # leggo tutti i GT e li metto in una lista,
         # leggo tutte le predizioni e le metto in una lista
         # per ogni predizione dovrei calcolare le distanze da ogni GT
+    if len(append_to_file) > 0:
+        if not os.path.exists:
+            print('Error: the file must already exist!')
+        else:
+            with open(append_to_file, 'a') as general_file:
+                general_file.write(f'{nr_TP} {nr_FP} {nr_FN}\n')
+
 
 
 if __name__ == "__main__":
