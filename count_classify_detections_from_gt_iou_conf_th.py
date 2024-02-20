@@ -158,7 +158,7 @@ def main():
             print('Error: the file must already exist!')
         else:
             with open(append_to_file, 'a') as general_file:
-                general_file.write(f'{nr_TP} {nr_FP} {nr_FN}\n')
+                general_file.write(f'{conf_threshold} {nr_TP} {nr_FP} {nr_FN}\n')
 
 
 
