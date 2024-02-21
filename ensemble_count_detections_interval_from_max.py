@@ -324,7 +324,7 @@ def main():
         out_file.write(f'Percentage threshold = {interval_percentage}\n')
 
     if len(append_to_file) > 0:
-        if not os.path.exists:
+        if not os.path.exists(append_to_file):
             print('Error: the file must already exist!')
         else:
             with open(append_to_file, 'a') as general_file:

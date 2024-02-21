@@ -154,7 +154,7 @@ def main():
         # leggo tutte le predizioni e le metto in una lista
         # per ogni predizione dovrei calcolare le distanze da ogni GT
     if len(append_to_file) > 0:
-        if not os.path.exists:
+        if not os.path.exists(append_to_file):
             print('Error: the file must already exist!')
         else:
             with open(append_to_file, 'a') as general_file:
