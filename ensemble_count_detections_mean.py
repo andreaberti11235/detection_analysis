@@ -321,7 +321,7 @@ def main():
             print('Error: the file must already exist!')
         else:
             with open(append_to_file, 'a') as general_file:
-                general_file.write(f'{nr_TP} {nr_FP} {nr_FN}\n')
+                general_file.write(f'{conf_threshold} {nr_TP} {nr_FP} {nr_FN}\n')
 
         # leggo tutti i GT e li metto in una lista,
         # leggo tutte le predizioni e le metto in una lista
