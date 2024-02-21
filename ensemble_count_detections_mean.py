@@ -218,6 +218,9 @@ def main():
         pred_v5_list = fill_in_pred_list(pred_v5_list, pred_v5_txt)
         pred_v8_list = fill_in_pred_list(pred_v8_list, pred_v8_txt)
 
+        pred_v5_list = np.array(pred_v5_list)
+        pred_v8_list = np.array(pred_v8_list)
+        
         pred_v5_list = [item/2 for item in pred_v5_list]
         pred_v8_list = [item/2 for item in pred_v8_list]
 
