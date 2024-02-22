@@ -274,8 +274,8 @@ def main():
         pred_v5_list = fill_in_pred_list(pred_v5_list, pred_v5_txt)
         pred_v8_list = fill_in_pred_list(pred_v8_list, pred_v8_txt)
 
-        v5_precision = precision(pred_v5_list, gt_list, iou_threshold_gt, conf_threshold)
         v8_precision = precision(pred_v8_list, gt_list, iou_threshold_gt, conf_threshold)
+        v5_precision = precision(pred_v5_list, gt_list, iou_threshold_gt, conf_threshold)
 
         pred_v5_list = [[item[0], item[1], item[2], item[3], v5_precision * item[4]] for item in pred_v5_list]
         pred_v8_list = [[item[0], item[1], item[2], item[3], v8_precision * item[4]] for item in pred_v8_list]
