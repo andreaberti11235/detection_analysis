@@ -375,7 +375,7 @@ def main():
         out_file.write(f'IOU threshold value = {iou_threshold_gt}\n')
         out_file.write(f'Confidence threshold value = {conf_threshold}\n')
         out_file.write(f'V5 Precision = {v5_precision}\n')
-        out_file.write(f'V5 Precision = {v5_precision}\n')
+        out_file.write(f'V8 Precision = {v8_precision}\n')
 
     if len(append_to_file) > 0:
         if not os.path.exists(append_to_file):
