@@ -156,7 +156,7 @@ def get_minimal_bounding_box(x1, y1, w1, h1, x2, y2, w2, h2):
     return (x, y, w, h)
 
 def main():
-    parser = argparse.ArgumentParser(description='Analyse the prediction outputs from the ensemble detections to find TP and FP.')
+    parser = argparse.ArgumentParser(description='Analyse the prediction outputs from the ensemble detections to find TP and FP. For the ensemble, this method employs the mean of the confidence values.')
     parser.add_argument('gt_dir', help='Absolute path of the folder containing the ground-truth txt files')
     parser.add_argument('pred_v5_dir', help='Absolute path of the folder containing the prediction txt files from YOLO v5')
     parser.add_argument('pred_v8_dir', help='Absolute path of the folder containing the prediction txt files from YOLO v8')
