@@ -206,7 +206,7 @@ def precision(pred_list, gt_list, iou_threshold, conf_th):
     nr_FP += len(pred_list) - np.sum(found_masses)
     nr_FN += len(found_masses) - np.sum(found_masses)
 
-    precision = nr_TP / (nr_TP + nr_FP)
+    precision = nr_TP / (nr_TP + nr_FP +1)
 
     return precision
                     
