@@ -208,7 +208,7 @@ def precision(pred_list, gt_list, iou_threshold, conf_th):
 
     precision = nr_TP / (nr_TP + nr_FP +1)
 
-    return precision
+    return precision, nr_TP, nr_FP
                     
 
 def main():
@@ -274,8 +274,8 @@ def main():
         pred_v5_list = fill_in_pred_list(pred_v5_list, pred_v5_txt)
         pred_v8_list = fill_in_pred_list(pred_v8_list, pred_v8_txt)
 
-        v8_precision = precision(pred_v8_list, gt_list, iou_threshold_gt, conf_threshold)
-        v5_precision = precision(pred_v5_list, gt_list, iou_threshold_gt, conf_threshold)
+        v8_precision, TP_v5, FP_v5 = precision(pred_v8_list, gt_list, iou_threshold_gt, conf_threshold)
+        v5_precision, TP_v8, FP_v8 = precision(pred_v5_list, gt_list, iou_threshold_gt, conf_threshold)
 
         pred_v5_list = [[item[0], item[1], item[2], item[3], v5_precision * item[4]] for item in pred_v5_list]
         pred_v8_list = [[item[0], item[1], item[2], item[3], v8_precision * item[4]] for item in pred_v8_list]
@@ -374,8 +374,8 @@ def main():
         out_file.write(f'Total number of masses Tot={tot_n_masses}\n\n')
         out_file.write(f'IOU threshold value = {iou_threshold_gt}\n')
         out_file.write(f'Confidence threshold value = {conf_threshold}\n')
-        out_file.write(f'V5 Precision = {v5_precision}\n')
-        out_file.write(f'V8 Precision = {v8_precision}\n')
+        out_file.write(f'V5: Precision = {v5_precision}, TP = {TP_v5}, FP = {FP_v5}\n')
+        out_file.write(f'V8 Precision = {v8_precision}, TP = {TP_v8}, FP = {FP_v8}\n')
 
     if len(append_to_file) > 0:
         if not os.path.exists(append_to_file):
