@@ -77,37 +77,49 @@ def iou(x1, y1, w1, h1, x2, y2, w2, h2):
 
   return iou
 
-def fill_in_pred_list(pred_list, pred_txt):
+def fill_in_pred_list(bboxes_list, pred_txt, conf_th):
     """
-    Fills in a list with the bounding box and confidence values from a text file.
+    This function fills in a list of bounding boxes from a text file.
 
-    Args:
-    pred_list (list): A list to store the predictions.
-    pred_txt (str): The path to the text file with the predictions.
+    Parameters:
+    bboxes_list (list): A list of lists, each containing the x_center, y_center, width, height, and optionally confidence of a bounding box.
+    pred_txt (str): The path to a text file that contains the bounding boxes information, separated by spaces. The file can have either 5 columns (for the ground truth) or 6 columns (for the predictions).
 
     Returns:
-    list: The updated list with the predictions.
+    list: The updated bboxes_list with the bounding boxes from the text file. If the file does not exist, returns an empty list.
     """
     if os.path.exists(pred_txt):
         # Read the file as a pandas dataframe, skipping the first column
-        predictions = pd.read_csv(pred_txt, sep=' ', header=None, usecols=[1, 2, 3, 4, 5])
+        bboxes = pd.read_csv(pred_txt, sep=' ', header=None)
 
         # Iterate over the rows of the dataframe
-        for row in predictions.itertuples(index=False):
-            # Extract the values from the row
-            x_center, y_center, width, height, confidence = row
+        if len(bboxes.columns) == 5:
+            # It's the CSV of the GT
+            for row in bboxes.itertuples(index=False):
+                # Extract the values from the row
+                _, x_center, y_center, width, height = row
 
-            # Create a list with the values
-            prediction = [x_center, y_center, width, height, confidence]
+                # Create a list with the values
+                bbox = [x_center, y_center, width, height]
+                # Append the list to the pred_list
+                bboxes_list.append(bbox)
+        else:
+            # It's the CSV of the predictions
+            for row in bboxes.itertuples(index=False):
+                _, x_center, y_center, width, height, confidence = row
 
-            # Append the list to the pred_list
-            pred_list.append(prediction)
+                # Create a list with the values
+                bbox = [x_center, y_center, width, height, confidence]
+
+                if confidence >= conf_th:
+                    # Append the list to the pred_list
+                    bboxes_list.append(bbox)
     else:
         # Handle the case when the file does not exist
-        pred_list = []
+        bboxes_list = []
 
-    # Return the pred_list
-    return pred_list
+    # Return the bboxes_list
+    return bboxes_list
 
 def get_minimal_bounding_box(x1, y1, w1, h1, x2, y2, w2, h2):
     """
@@ -155,61 +167,110 @@ def get_minimal_bounding_box(x1, y1, w1, h1, x2, y2, w2, h2):
     # Return the x_center, y_center, width, and height of the minimal bounding box
     return (x, y, w, h)
 
-def precision(pred_list, gt_list, iou_threshold, conf_th):
+def compile_full_lists_and_get_metrics(gt_dir, pred_v5_dir, pred_v8_dir, iou_threshold, conf_th):
     """
-    Calculates the precision metric for object detection.
+    This function compiles the lists of ground truth and predicted bounding boxes from different directories, and calculates the metrics of true positives, false positives, and false negatives for two versions of a machine learning model.
 
-    Precision is the ratio of true positives to the total number of positive predictions.
-    A prediction is considered a true positive if its IoU (Intersection over Union) with the closest ground truth bounding box is greater than or equal to a given threshold.
-
-    Args:
-        pred_list (list): A list of predicted bounding boxes, each in the format of [x, y, width, height, confidence].
-        gt_list (list): A list of ground truth bounding boxes, each in the format of [x, y, width, height].
-        iou_threshold (float): The minimum IoU value to consider a prediction as a true positive.
-        conf_th (float): The minimum confidence value to consider a prediction as a positive.
+    Parameters:
+    gt_dir (str): The path to the directory that contains the text files of the ground truth bounding boxes, separated by spaces. The files have 5 columns: image name, x_center, y_center, width, and height.
+    pred_v5_dir (str): The path to the directory that contains the text files of the predicted bounding boxes by the model version 5, separated by spaces. The files have 6 columns: image name, x_center, y_center, width, height, and confidence.
+    pred_v8_dir (str): The path to the directory that contains the text files of the predicted bounding boxes by the model version 8, separated by spaces. The files have 6 columns: image name, x_center, y_center, width, height, and confidence.
+    iou_threshold (float): The threshold of the intersection over union (IoU) score to determine if a predicted bounding box is a true positive or a false positive. The IoU score is the ratio of the area of overlap between two bounding boxes to the area of union. It ranges from 0 to 1, where 1 means perfect overlap and 0 means no overlap.
+    conf_th (float): The threshold of the confidence score to filter out the predicted bounding boxes that have low confidence. The confidence score is a measure of how confident the model is that the bounding box contains a mass. It ranges from 0 to 1, where 1 means high confidence and 0 means low confidence.
 
     Returns:
-        float: The precision value, ranging from 0 to 1.
+    tuple: A tuple of five elements: 
+    - gt_list_all (list): A list of lists, each containing the lists of the ground truth bounding boxes for each image file. Each bounding box is a list of four values: x_center, y_center, width, and height.
+    - v5_list_all (list): A list of lists, each containing the lists of the predicted bounding boxes by the model version 5 for each image file. Each bounding box is a list of five values: x_center, y_center, width, height, and confidence.
+    - v8_list_all (list): A list of lists, each containing the lists of the predicted bounding boxes by the model version 8 for each image file. Each bounding box is a list of five values: x_center, y_center, width, height, and confidence.
+    - (nr_TP_v5, nr_FP_v5, nr_FN_v5) (tuple): A tuple of three integers, representing the number of true positives, false positives, and false negatives for the model version 5, respectively.
+    - (nr_TP_v8, nr_FP_v8, nr_FN_v8) (tuple): A tuple of three integers, representing the number of true positives, false positives, and false negatives for the model version 8, respectively.
     """
     tot_n_masses = 0
-    nr_TP = 0
-    nr_FP = 0
-    nr_FN = 0
+    nr_TP_v5 = 0
+    nr_FP_v5 = 0
+    nr_FN_v5 = 0
+    nr_TP_v8 = 0
+    nr_FP_v8 = 0
+    nr_FN_v8 = 0
 
-    tot_n_masses += len(gt_list)
-    found_masses = np.zeros(shape=len(gt_list))
+    gt_list_all = []
+    v5_list_all = []
+    v8_list_all = []
 
-    for detection in pred_list:
-        if detection[4] >= conf_th:
-            distances = []
+    for element in glob.glob(os.path.join(gt_dir, '*')):
+        gt_txt = element
+        pred_v5_txt = os.path.join(pred_v5_dir, os.path.basename(element))
+        pred_v8_txt = os.path.join(pred_v8_dir, os.path.basename(element))
+
+        gt_list = []
+        pred_v5_list = []
+        pred_v8_list = []
+
+        gt_list = fill_in_pred_list(gt_list, gt_txt, conf_th)
+        gt_list_all.append(gt_list)
+
+        pred_v5_list = fill_in_pred_list(pred_v5_list, pred_v5_txt, conf_th)
+        v5_list_all.append(pred_v5_list)
+
+        pred_v8_list = fill_in_pred_list(pred_v8_list, pred_v8_txt, conf_th)
+        v8_list_all.append(pred_v8_list)
+        
+        tot_n_masses += len(gt_list)
+        found_masses_v5 = np.zeros(shape=len(gt_list))
+        found_masses_v8 = np.zeros(shape=len(gt_list))
+
+        find_correct_predictions(iou_threshold, gt_list, pred_v5_list, found_masses_v5)
+        find_correct_predictions(iou_threshold, gt_list, pred_v8_list, found_masses_v8)
+
+        nr_TP_v5 += np.sum(found_masses_v5)
+        nr_FP_v5 += len(pred_v5_list) - np.sum(found_masses_v5)
+        nr_FN_v5 += len(found_masses_v5) - np.sum(found_masses_v5)
+        nr_TP_v8 += np.sum(found_masses_v8)
+        nr_FP_v8 += len(pred_v8_list) - np.sum(found_masses_v8)
+        nr_FN_v8 += len(found_masses_v8) - np.sum(found_masses_v8)
+
+    return gt_list_all, v5_list_all, v8_list_all, (nr_TP_v5, nr_FP_v5, nr_FN_v5), (nr_TP_v8, nr_FP_v8, nr_FN_v8)
+
+def find_correct_predictions(iou_threshold, gt_list, pred_v5_list, found_masses_v5):
+    for detection in pred_v5_list:
+        distances = []
             # per ogni elemento trovato, inizializzo una lista, 
             # poi guardo quanto dista da tutti i bbox della gt e appendo alla lista
-            for bbox in gt_list:
-                pred_xy = np.array(detection[0:2])
-                gt_xy = np.array(bbox[0:2])
+        for bbox in gt_list:
+            pred_xy = np.array(detection[0:2])
+            gt_xy = np.array(bbox[0:2])
 
-                distance = linalg.norm(pred_xy - gt_xy)
-                distances.append(distance)
+            distance = linalg.norm(pred_xy - gt_xy)
+            distances.append(distance)
             
             # trovo a quale massa GT sta più vicino e per quella calcolo la IOU
-            closest_item = np.argmin(distances)
-            gt_values = gt_list[closest_item]
-            iou_value = iou(x1=detection[0], y1=detection[1], w1=detection[2], h1=detection[3],
+        closest_item = np.argmin(distances)
+        gt_values = gt_list[closest_item]
+        iou_value = iou(x1=detection[0], y1=detection[1], w1=detection[2], h1=detection[3],
                             x2=gt_values[0], y2=gt_values[1], w2=gt_values[2], h2=gt_values[3])
 
             # se la IOU è minore di una certa soglia, le considero come coincidenti
-            if iou_value >= iou_threshold:
+        if iou_value >= iou_threshold:
                 # print(f'è un vero Vero Positivo, massa più vicina riga {closest_item}')
-                found_masses[closest_item] = 1
-
-    nr_TP += np.sum(found_masses)
-    nr_FP += len(pred_list) - np.sum(found_masses)
-    nr_FN += len(found_masses) - np.sum(found_masses)
-
-    precision = nr_TP / (nr_TP + nr_FP +1)
-
-    return precision, nr_TP, nr_FP
+            found_masses_v5[closest_item] = 1
                     
+def precision(TP, FP):
+    """
+    This function calculates the precision metric for a binary classification problem.
+
+    Parameters:
+    TP (int): The number of true positives, i.e., the number of instances that are correctly predicted as positive by the model.
+    FP (int): The number of false positives, i.e., the number of instances that are incorrectly predicted as positive by the model.
+
+    Returns:
+    float: The precision score, which is the ratio of true positives to the total number of predicted positives. It ranges from 0 to 1, where 1 means perfect precision and 0 means no precision. The formula is:
+
+    $$\text{precision} = \frac{\text{TP}}{\text{TP} + \text{FP} + 1}$$
+    """
+    precision = TP / (TP + FP + 1)
+
+    return precision
 
 def main():
     parser = argparse.ArgumentParser(description='Analyse the prediction outputs from the ensemble detections to find TP and FP. The ensemble detections are weighted based on the Precision values for the two models.')
@@ -240,28 +301,17 @@ def main():
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
-    for element in glob.glob(os.path.join(gt_dir, '*')):
-        gt_txt = element
-        pred_v5_txt = os.path.join(pred_v5_dir, os.path.basename(element))
-        pred_v8_txt = os.path.join(pred_v8_dir, os.path.basename(element))
+    gt_list_all, v5_list_all, v8_list_all, v5_metrics, v8_metrics = compile_full_lists_and_get_metrics(gt_dir, pred_v5_dir, pred_v8_dir, iou_threshold_gt, conf_threshold)
 
-        gt_df = pd.read_csv(gt_txt, sep=' ', header=None)
-
-        gt_list = []
-        pred_v5_list = []
-        pred_v8_list = []
+    v5_precision = precision(v5_metrics[0], v5_metrics[1])
+    v8_precision = precision(v8_metrics[0], v8_metrics[1])
 
 
-        for idx in gt_df.index:
-            x_center = gt_df.iloc[idx][1]
-            y_center = gt_df.iloc[idx][2]
-            width = gt_df.iloc[idx][3]
-            height = gt_df.iloc[idx][4]
+    for idx, element in enumerate(gt_list_all):
+        gt_list = element
+        pred_v5_list = v5_list_all[idx]
+        pred_v8_list = v8_list_all[idx]
 
-            gt_element = [x_center, y_center, width, height]
-            gt_list.append(gt_element) # è una lista di liste, ciascuna delle quali contiene gli elementi di un bbox
-
-        
         tot_n_masses += len(gt_list)
         found_masses = np.zeros(shape=len(gt_list))
 
@@ -271,12 +321,6 @@ def main():
         # aggiungendo le pred in più, sommando la probabilità e prendendo il bbox più grande per quelle coincidenti;
         # per finire controllo IOU tra la lista risultante e la GT
 
-        pred_v5_list = fill_in_pred_list(pred_v5_list, pred_v5_txt)
-        pred_v8_list = fill_in_pred_list(pred_v8_list, pred_v8_txt)
-
-        v8_precision, TP_v5, FP_v5 = precision(pred_v8_list, gt_list, iou_threshold_gt, conf_threshold)
-        v5_precision, TP_v8, FP_v8 = precision(pred_v5_list, gt_list, iou_threshold_gt, conf_threshold)
-
         pred_v5_list = [[item[0], item[1], item[2], item[3], v5_precision * item[4]] for item in pred_v5_list]
         pred_v8_list = [[item[0], item[1], item[2], item[3], v8_precision * item[4]] for item in pred_v8_list]
 
@@ -284,8 +328,6 @@ def main():
         # parto inizializzando pred_fusion a v5, poi scorro v8, se la predizione coincide con una di quelle di v5
         # levo da v5 e la sostituisco con la fusione, altrimenti appendo alla lista
 
-
-        
         for detection in pred_v8_list:
             if len(pred_v5_list) == 0:
                 pred_fusion = pred_v8_list[:]
