@@ -416,8 +416,8 @@ def main():
         out_file.write(f'Total number of masses Tot={tot_n_masses}\n\n')
         out_file.write(f'IOU threshold value = {iou_threshold_gt}\n')
         out_file.write(f'Confidence threshold value = {conf_threshold}\n')
-        out_file.write(f'V5: Precision = {v5_precision}, TP = {TP_v5}, FP = {FP_v5}\n')
-        out_file.write(f'V8 Precision = {v8_precision}, TP = {TP_v8}, FP = {FP_v8}\n')
+        out_file.write(f'V5: Precision = {v5_precision}, TP = {v5_metrics[0]}, FP = {v5_metrics[1]}\n')
+        out_file.write(f'V8 Precision = {v8_precision}, TP = {v8_metrics[0]}, FP = {v8_metrics[1]}\n')
 
     if len(append_to_file) > 0:
         if not os.path.exists(append_to_file):
