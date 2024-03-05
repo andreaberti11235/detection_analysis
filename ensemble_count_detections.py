@@ -313,7 +313,7 @@ def main():
         out_file.write(f'IOU threshold value = {iou_threshold_gt}\n')
         out_file.write(f'Confidence threshold value = {conf_threshold}\n')
 
-    if len(append_to_file) > 0:
+    if append_to_file is not None:
         if not os.path.exists(append_to_file):
             print('Error: the file must already exist!')
         else:

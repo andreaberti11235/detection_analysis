@@ -419,7 +419,7 @@ def main():
         out_file.write(f'V5: Precision = {v5_precision}, TP = {v5_metrics[0]}, FP = {v5_metrics[1]}\n')
         out_file.write(f'V8 Precision = {v8_precision}, TP = {v8_metrics[0]}, FP = {v8_metrics[1]}\n')
 
-    if len(append_to_file) > 0:
+    if append_to_file is not None:
         if not os.path.exists(append_to_file):
             print('Error: the file must already exist!')
         else:
