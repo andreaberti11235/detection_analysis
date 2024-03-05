@@ -45,7 +45,7 @@ def main():
     parser.add_argument('out_dir', help='Absolute path of the folder where the output file, with the resulting numbers, will be saved')
     parser.add_argument('-iou_th', '--iou_threshold', type=float, default=0.1, help='Threshold for IOU (default = 0.1)')
     parser.add_argument('-conf_th', '--conf_threshold', type=float, default=0.1, help='Threshold for confidence value (default = 0.1)')
-    parser.add_argument('-file', '--append_to_file', type=str, help='Path to the txt file, where the resulting metrics will be appended (for comparison analysis). If not given, only the file in the out_dir will be produced. The file MUST EXIST and have the following columns nr_TP nr_FP nr_FN (separated by a space)')
+    parser.add_argument('-file', '--append_to_file', type=str, help='Path to the txt file, where the resulting metrics will be appended (for comparison analysis). If not given, only the file in the out_dir will be produced. The file MUST EXIST and have the following columns conf_threshold nr_TP nr_FP nr_FN (separated by a space)')
     args = parser.parse_args()
 
     gt_dir = args.gt_dir

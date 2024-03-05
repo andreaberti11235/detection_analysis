@@ -164,7 +164,7 @@ def main():
     parser.add_argument('-iou_th_gt', '--iou_threshold_gt', type=float, default=0.1, help='Threshold for IOU (default = 0.1)when comparing predictions to GT')
     parser.add_argument('-iou_th_p', '--iou_threshold_prediction', type=float, default=0.3, help='Threshold for IOU (default = 0.3), when comparing predictions from V5 to those from v8')
     parser.add_argument('-conf_th', '--conf_threshold', type=float, default=0.1, help='Threshold for confidence value (default = 0.1)')
-    parser.add_argument('-file', '--append_to_file', type=str, help='Path to the txt file, where the resulting metrics will be appended (for comparison analysis). If not given, only the file in the out_dir will be produced. The file MUST EXIST and have the following columns nr_TP nr_FP nr_FN (separated by a space)')
+    parser.add_argument('-file', '--append_to_file', type=str, help='Path to the txt file, where the resulting metrics will be appended (for comparison analysis). If not given, only the file in the out_dir will be produced. The file MUST EXIST and have the following columns conf_threshold nr_TP nr_FP nr_FN (separated by a space)')
     args = parser.parse_args()
 
     gt_dir = args.gt_dir
